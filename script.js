@@ -1,95 +1,57 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // Dikkat: Artık kebabListesi, kebab_listesi.js dosyasından global olarak erişilebilir.
-    // Eğer kebabListesi tanımlı değilse (dosya yüklenmemişse) hata verecektir.
-
     const kebabNameElement = document.getElementById('kebabName');
-    const generateButton = document.getElementById('generateButton');
-    
-    // Sayfa yüklendiğinde ilk seçimi yap
-    generateRandomKebab();
+    const container = document.querySelector('.container');
+    let kelimeler = [];
 
-    // Buton olayını dinle
-    generateButton.addEventListener('click', generateRandomKebab);
+    // Yerel dosya (file://) ile doğrudan açıldığında veya bağlantı sorununda devreye girecek yedek liste
+    const YEDEK_KELIMELER = [
+        "kapaklardık", "kargolama", "karıncalanmalar", "konukseverleş", "bilgisayar",
+        "makine", "otobüs", "helikopter", "tost", "kumanda", "klavye", "şemsiye",
+        "çekmece", "pencere", "mandarin", "astronot", "derinlik", "kalorifer", "merdiven"
+    ];
 
-    function generateRandomKebab() {
-        // kebabListesi'nin tanımlı ve dizi olduğundan emin olmak iyi bir pratiktir.
-        if (typeof kebabListesi === 'undefined' || !Array.isArray(kebabListesi) || kebabListesi.length === 0) {
-            kebabNameElement.textContent = "Hata: Kebab listesi bulunamadı!";
-            return;
+    function rastgeleKebapSec() {
+        if (!kelimeler || kelimeler.length === 0) {
+            kelimeler = YEDEK_KELIMELER;
         }
-
-        // Rastgele İndeks Seçimi
-        const randomIndex = Math.floor(Math.random() * kebabListesi.length);
-        
-        // Listeden Kelimeyi Çek
-        const selectedKebab = kebabListesi[randomIndex];
-        
-        // HTML'i Güncelle
-        kebabNameElement.textContent = `${selectedKebab} Kebabı`;
+        const randomIndex = Math.floor(Math.random() * kelimeler.length);
+        const secilenKelime = kelimeler[randomIndex];
+        kebabNameElement.textContent = `${secilenKelime} kebabı`;
     }
-    
-    document.addEventListener('DOMContentLoaded', () => {
-    const URL = "https://raw.githubusercontent.com/mertemin/turkish-word-list/refs/heads/master/words.txt";
-    const kebabNameElement = document.getElementById('kebabName');
-    const generateButton = document.getElementById('generateButton');
-    
-    // Başlangıçta butonun pasif kalması iyi olur
-    generateButton.disabled = true;
-    kebabNameElement.textContent = "Kebab listesi yükleniyor...";
 
-    // Listeyi internetten çekme fonksiyonu
-    async function loadKebabList() {
+    async function kelimeleriYukle() {
         try {
-            const response = await fetch(URL);
-            
+            const response = await fetch('kelimeler.txt');
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP Hata: ${response.status}`);
             }
 
-            const textData = await response.text();
-            
-            // Metni satır satır ayır ve boş satırları temizle
-            // split('\n') ile satırlara ayırırız.
-            // filter(word => word.trim() !== '') ile boş satırları (veya sadece boşluk içeren satırları) eleriz.
-            const loadedList = textData
+            const data = await response.text();
+            kelimeler = data
                 .split('\n')
-                .map(word => word.trim()) // Başındaki/sonundaki boşlukları temizle
-                .filter(word => word.length > 0); // Boş dizeleri at
+                .map(word => word.trim())
+                .filter(word => word.length > 0);
 
-            // Kebab listemizi artık bu yeni liste ile güncelliyoruz
-            // Eğer listeden sadece KEBAB ile alakalı kelimeleri filtrelemek isterseniz, 
-            // buraya ek filtreleme (örneğin .filter(word => word.includes("kebap"))) ekleyebilirsiniz.
-            // Şimdilik sadece genel kelimeleri kullanıyoruz.
-            
-            if (loadedList.length === 0) {
-                throw new Error("Yüklenen listede kelime bulunamadı.");
+            if (kelimeler.length === 0) {
+                throw new Error("Kelimeler listesi boş.");
             }
 
-            // Başarılı yükleme sonrası butonu aktif et ve olay dinleyicisini ata
-            generateButton.disabled = false;
-            generateButton.addEventListener('click', () => generateRandomKebab(loadedList));
-            
-            // İlk rastgele seçimi yap
-            generateRandomKebab(loadedList);
-            
+            // Sayfa her açıldığında/yenilendiğinde rastgele kebap seç
+            rastgeleKebapSec();
         } catch (error) {
-            console.error("Kebab listesi yüklenirken hata oluştu:", error);
-            kebabNameElement.textContent = `HATA: Listeye ulaşılamadı.`;
-            generateButton.disabled = true;
+            console.warn("kelimeler.txt fetch ile yüklenemedi, yedek liste kullanılıyor:", error);
+            kelimeler = YEDEK_KELIMELER;
+            rastgeleKebapSec();
         }
     }
 
-    // Rastgele kebab seçme fonksiyonu
-    function generateRandomKebab(list) {
-        const randomIndex = Math.floor(Math.random() * list.length);
-        const selectedWord = list[randomIndex];
-        
-        // Kebab ismini sonuna "- Kebabı" ekleyerek formatlıyoruz
-        kebabNameElement.textContent = `Seçilen: ${selectedWord} Kebabı`;
+    // Kart alanına tıklandığında da yeni bir kebap üretsin
+    if (container) {
+        container.style.cursor = 'pointer';
+        container.title = 'Yeni kebap için tıkla veya sayfayı yenile';
+        container.addEventListener('click', rastgeleKebapSec);
     }
 
-    // Uygulamayı başlat
-    loadKebabList();
-});
+    // Başlat
+    kelimeleriYukle();
 });
