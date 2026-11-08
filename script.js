@@ -10,13 +10,20 @@ document.addEventListener('DOMContentLoaded', () => {
         "çekmece", "pencere", "mandarin", "astronot", "derinlik", "kalorifer", "merdiven"
     ];
 
+    function basHarfleriBuyut(metin) {
+        return metin
+            .split(' ')
+            .map(kelime => kelime ? kelime.charAt(0).toLocaleUpperCase('tr-TR') + kelime.slice(1) : '')
+            .join(' ');
+    }
+
     function rastgeleKebapSec() {
         if (!kelimeler || kelimeler.length === 0) {
             kelimeler = YEDEK_KELIMELER;
         }
         const randomIndex = Math.floor(Math.random() * kelimeler.length);
         const secilenKelime = kelimeler[randomIndex];
-        kebabNameElement.textContent = `${secilenKelime} kebabı`;
+        kebabNameElement.textContent = `${basHarfleriBuyut(secilenKelime)} Kebabı`;
     }
 
     async function kelimeleriYukle() {
