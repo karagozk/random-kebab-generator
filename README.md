@@ -1,1 +1,1 @@
-https://karagozkk.github.io/random-kebab-generator
+https://karagozk.github.io/random-kebab-generator
